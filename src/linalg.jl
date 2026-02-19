@@ -45,22 +45,22 @@ end
 @inline _sym_uplo(A) = A.uplo == 'U' ? :U : :L
 
 # Self-adjoint wrappers over StaticMatrix with UniformScaling
-@inline +(A::Symmetric{<:Any,<:StaticMatrix}, J::UniformScaling) =
+@inline +(A::Symmetric{T,<:StaticMatrix{N,M,T}}, J::UniformScaling) where {N,M,T} =
     Symmetric(_plus_uniform_parent(A, J.λ), _sym_uplo(A))
-@inline -(J::UniformScaling, A::Symmetric{<:Any,<:StaticMatrix}) =
+@inline -(J::UniformScaling, A::Symmetric{T,<:StaticMatrix{N,M,T}}) where {N,M,T} =
     Symmetric(_minus_uniform_parent(A, J.λ), _sym_uplo(A))
 
-@inline +(A::Hermitian{<:Any,<:StaticMatrix}, J::UniformScaling) =
+@inline +(A::Hermitian{T,<:StaticMatrix{N,M,T}}, J::UniformScaling) where {N,M,T} =
     Hermitian(_plus_uniform_parent(A, J.λ), _sym_uplo(A))
-@inline -(J::UniformScaling, A::Hermitian{<:Any,<:StaticMatrix}) =
+@inline -(J::UniformScaling, A::Hermitian{T,<:StaticMatrix{N,M,T}}) where {N,M,T} =
     Hermitian(_minus_uniform_parent(A, J.λ), _sym_uplo(A))
 
 # Lose Hermitian wrapper when adding complex UniformScaling, in-line with Base behavior
-@inline function +(A::Hermitian{<:Any,<:StaticMatrix}, J::UniformScaling{<:Complex})
+@inline function +(A::Hermitian{T,<:StaticMatrix{N,M,T}}, J::UniformScaling{<:Complex}) where {N,M,T}
     TS = Base.promote_op(+, eltype(A), typeof(J))
     _plus_uniform(Size(A), similar_type(A, TS)(A), J.λ)
 end
-@inline function -(J::UniformScaling{<:Complex}, A::Hermitian{<:Any,<:StaticMatrix})
+@inline function -(J::UniformScaling{<:Complex}, A::Hermitian{T,<:StaticMatrix{N,M,T}}) where {N,M,T}
     TS = Base.promote_op(+, eltype(A), typeof(J))
     _plus_uniform(Size(A), -similar_type(A, TS)(A), J.λ)
 end
@@ -68,8 +68,8 @@ end
 # Triangular wrappers over StaticMatrix with UniformScaling
 for TWR in (:UpperTriangular, :LowerTriangular)
     @eval begin
-        @inline +(A::$TWR{<:Any,<:StaticMatrix}, J::UniformScaling) = $TWR(_plus_uniform_parent(A, J.λ))
-        @inline -(J::UniformScaling, A::$TWR{<:Any,<:StaticMatrix}) = $TWR(_minus_uniform_parent(A, J.λ))
+        @inline +(A::$TWR{T,<:StaticMatrix{N,M,T}}, J::UniformScaling) where {N,M,T} = $TWR(_plus_uniform_parent(A, J.λ))
+        @inline -(J::UniformScaling, A::$TWR{T,<:StaticMatrix{N,M,T}}) where {N,M,T} = $TWR(_minus_uniform_parent(A, J.λ))
     end
 end
 
@@ -79,8 +79,8 @@ end
 
 for (TWR1, TWR2) in ((:UnitUpperTriangular, :UpperTriangular), (:UnitLowerTriangular, :LowerTriangular))
     @eval begin
-        @inline +(A::$TWR1{<:Any,<:StaticMatrix}, J::UniformScaling) = $TWR2(_plus_uniform_materialized(A, J.λ))
-        @inline -(J::UniformScaling, A::$TWR1{<:Any,<:StaticMatrix}) = $TWR2(_minus_uniform_materialized(A, J.λ))
+        @inline +(A::$TWR1{T,<:StaticMatrix{N,M,T}}, J::UniformScaling) where {N,M,T} = $TWR2(_plus_uniform_materialized(A, J.λ))
+        @inline -(J::UniformScaling, A::$TWR1{T,<:StaticMatrix{N,M,T}}) where {N,M,T} = $TWR2(_minus_uniform_materialized(A, J.λ))
     end
 end
 
